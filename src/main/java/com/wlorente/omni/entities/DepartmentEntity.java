@@ -27,14 +27,15 @@ public class DepartmentEntity implements Serializable {
 		
 	}
 
-	public DepartmentEntity(Integer id, String name, String region, String city, String state, BoardType tipoDiretoria) {
+	public DepartmentEntity(Integer id, String name, String region, String city, String state, Integer tipoDiretoria) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.region = region;
 		this.city = city;
 		this.state = state;
-		this.idBoard = (tipoDiretoria==null) ? null : tipoDiretoria.getId();
+		//this.idBoard = (tipoDiretoria==null) ? null : tipoDiretoria.getId();
+		this.idBoard = tipoDiretoria;
 	}
 
     

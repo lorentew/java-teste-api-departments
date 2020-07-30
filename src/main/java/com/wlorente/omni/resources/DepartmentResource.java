@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,7 +19,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.wlorente.omni.dto.DepartmentDTO;
 import com.wlorente.omni.entities.DepartmentEntity;
-import com.wlorente.omni.services.DepartmentService;
+import com.wlorente.omni.usercases.DepartmentConsultUseCase;
+import com.wlorente.omni.usercases.DepartmentDeleteUseCase;
+import com.wlorente.omni.usercases.DepartmentInsertUseCase;
+import com.wlorente.omni.usercases.DepartmentSearchStateUseCase;
+import com.wlorente.omni.usercases.DepartmentSearchUseCase;
+import com.wlorente.omni.usercases.DepartmentUpdateUseCase;
+import com.wlorente.omni.usercases.UtilUseCase;
 
 
 @RestController
@@ -29,17 +34,29 @@ import com.wlorente.omni.services.DepartmentService;
 public class DepartmentResource {
 	
 	@Autowired
-	private DepartmentService service;
+	private DepartmentSearchUseCase departmentSearchUseCase;
+	@Autowired
+	private DepartmentConsultUseCase departmentConsultUseCase;
+	@Autowired
+	private DepartmentSearchStateUseCase departmentSearchStateUseCase;
+	@Autowired
+	private DepartmentInsertUseCase departmentInsertUseCase;
+	@Autowired
+	private UtilUseCase utilUseCase;
+	@Autowired
+	DepartmentDeleteUseCase departmentDeleteUseCase;
+	@Autowired
+	DepartmentUpdateUseCase departmentUpdateUseCase;
 	
 	@RequestMapping(value="/{id}", method=RequestMethod.GET)
 	public ResponseEntity<DepartmentEntity> find(@PathVariable Integer id) {
-		DepartmentEntity obj = service.find(id);
+		DepartmentEntity obj = departmentSearchUseCase.find(id);
 		return ResponseEntity.ok().body(obj);
 	}
 	
 	@RequestMapping(method=RequestMethod.GET)
 	public ResponseEntity<List<DepartmentDTO>> findAll() {
-		List<DepartmentEntity> list = service.findAll();
+		List<DepartmentEntity> list = departmentConsultUseCase.findAll();
 		List<DepartmentDTO> listDto = list.stream().map(obj -> new DepartmentDTO(obj)).collect(Collectors.toList());  
 		return ResponseEntity.ok().body(listDto);
 	}
@@ -47,15 +64,15 @@ public class DepartmentResource {
 	//http://localhost:8080/api/departments/state-search?state=SC
 	@RequestMapping(value="/state-search", method=RequestMethod.GET)
 	public ResponseEntity<List<DepartmentDTO>> findByState(@RequestParam(value="state", defaultValue="") String state) {
-		List<DepartmentEntity> list = service.findByState(state);
+		List<DepartmentEntity> list = departmentSearchStateUseCase.findByState(state);
 		List<DepartmentDTO> listDto = list.stream().map(obj -> new DepartmentDTO(obj)).collect(Collectors.toList());  
 		return ResponseEntity.ok().body(listDto);
 	}
 	
 	@RequestMapping(method=RequestMethod.POST)
 	public ResponseEntity<Void> insert(@Valid @RequestBody DepartmentDTO objDto) {
-		DepartmentEntity obj = service.fromDTO(objDto);
-		obj = service.insert(obj);
+		DepartmentEntity obj = utilUseCase.fromDTO(objDto);
+		obj = departmentInsertUseCase.insert(obj);
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("/{id}").buildAndExpand(obj.getId()).toUri();
 		return ResponseEntity.created(uri).build();
@@ -63,15 +80,15 @@ public class DepartmentResource {
 	
 	@RequestMapping(value="/{id}", method=RequestMethod.PUT)
 	public ResponseEntity<Void> update(@Valid @RequestBody DepartmentDTO objDto, @PathVariable Integer id) {
-		DepartmentEntity obj = service.fromDTO(objDto);
+		DepartmentEntity obj = utilUseCase.fromDTO(objDto);
 		obj.setId(id);
-		obj = service.update(obj);
+		obj = departmentUpdateUseCase.update(obj);
 		return ResponseEntity.noContent().build();
 	}
 	
 	@RequestMapping(value="/{id}", method=RequestMethod.DELETE)
 	public ResponseEntity<Void> delete(@PathVariable Integer id) {
-		service.delete(id);
+		departmentDeleteUseCase.delete(id);
 		return ResponseEntity.noContent().build();
 	}
 
